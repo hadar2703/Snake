@@ -1,25 +1,32 @@
-var count = 0;
-var _count = 4;
-var arr = [];
-var x;
-var direction;
+/****************SETTING AREA***************/
+var table_Width = 30;
+var table_Height = 30;
+var speed = 100; // Higher = Slower
+var maxSpeed = 50; // Lower = Faster
+/*******************************************/
+
+var headSnake = 4;
 var bodySize = [3, 2, 1, 0];
-var r = 0;
-var speed = 100;
-var appel = Math.ceil(Math.random() * 749);
+var max_Cells = table_Width * table_Height;
+var cell_Id = 0; // Counter ID For tableCreate()
+var arr = [];
+var loopMovement;
+var direction;
+var appelScore = 0;
+var appel = Math.ceil(Math.random() * max_Cells);
 
 function tableCreate() {
 	document.getElementById("tabl").innerHTML = "";
 	var tab = document.getElementById("tabl");
 
-	for (i = 0; i < 25; i++) {
+	for (i = 0; i < table_Height; i++) {
 		var trtr = document.createElement("tr");
 
-		for (j = 0; j < 30; j++) {
+		for (j = 0; j < table_Width; j++) {
 			var a = document.createElement("td");
-			a.setAttribute("id", "ta" + count);
+			a.setAttribute("id", "ta" + cell_Id);
 			arr.push(a);
-			count++;
+			cell_Id++;
 			trtr.appendChild(a);
 		}
 		tab.appendChild(trtr);
@@ -27,27 +34,26 @@ function tableCreate() {
 }
 
 function rese() {
-	count = 0;
-	_count = 5;
+	cell_Id = 0;
+	headSnake = 4;
 	arr = [];
-	direction;
-	bodySize = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-	r = 0;
+	bodySize = [3, 2, 1, 0];
+	appelScore = 0;
 	speed = 100;
-	appel = Math.ceil(Math.random() * 749);
+	appel = Math.ceil(Math.random() * max_Cells);
 
-	tableCreate()
+	tableCreate();
 }
 
-function move2(side) {
+function movement(side) {
 	if (side + direction == 0) {
 		return;
 	}
-	clearInterval(x);
+	clearInterval(loopMovement);
 	arr[appel].style.backgroundColor = "red";
 
-	x = setInterval(function () {
-		arr[_count].style.backgroundColor = "white";
+	loopMovement = setInterval(function () {
+		arr[headSnake].style.backgroundColor = "white";
 		for (i = 0; i < bodySize.length; i++) {
 			arr[bodySize[i]].style.backgroundColor = "white";
 		}
@@ -56,59 +62,62 @@ function move2(side) {
 			bodySize[i] = bodySize[i - 1];
 		}
 
-		bodySize[0] = _count;
-		_count += side;
+		bodySize[0] = headSnake;
+		headSnake += side;
 
-		if (_count % 30 == 0 && side == 1) {
-			_count -= 30;
-		} else if ((_count + 1) % 30 == 0 && side == -1) {
-			_count += 30;
-		} else if (_count < 0) {
-			_count += 750;
-		} else if (_count > 749) {
-			_count -= 750;
+		if (headSnake % table_Width == 0 && side == 1) {
+			headSnake -= table_Width;
+		} else if ((headSnake + 1) % table_Width == 0 && side == -1) {
+			headSnake += table_Width;
+		} else if (headSnake < 0) {
+			headSnake += max_Cells;
+		} else if (headSnake > max_Cells) {
+			headSnake -= max_Cells;
 		}
 
 		// Check Eating
-		if (appel == _count) {
-			r++;
-			speed -= 10;
-			document.getElementById('score').innerHTML = "appels " + r;
+		if (appel == headSnake) {
+			appelScore++;
+			if (speed >= maxSpeed) {
+				speed -= 10;
+			}
+			document.getElementById('score').innerHTML = "Apple Score: " + appelScore;
 			bodySize.push(0);
-			appel = Math.ceil(Math.random() * 749);
+			bodySize.push(0);
+			appel = Math.ceil(Math.random() * max_Cells);
 			arr[appel].style.backgroundColor = "red";
 		}
 
 		for (i = 0; i < bodySize.length; i++) {
-			if (_count == bodySize[i]) {
-				clearInterval(x);
+			if (headSnake == bodySize[i]) {
+				clearInterval(loopMovement);
 				rese();
 				return;
 			}
 		}
 
-		arr[_count].style.backgroundColor = "black";
+		arr[headSnake].style.backgroundColor = "green";
 		for (i = 0; i < bodySize.length; i++) {
-			arr[bodySize[i]].style.backgroundColor = "black";
+			arr[bodySize[i]].style.backgroundColor = "yellow";
 		}
 
 	}, speed);
 	direction = side;
 }
 
-function movement(event) {
+function keyListen(event) {
 	switch (event.keyCode) {
 		case 37: //left
-			move2(-1);
+			movement(-1);
 			break;
 		case 38: //up
-			move2(-30);
+			movement(-table_Width);
 			break;
 		case 39: //right
-			move2(1);
+			movement(1);
 			break;
 		case 40: //down
-			move2(30);
+			movement(table_Width);
 			break;
 	}
 }
